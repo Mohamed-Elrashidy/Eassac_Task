@@ -111,65 +111,6 @@ class _WebViewPageState extends State<WebViewPage> {
     }
   }
 
-  /// Function Name: _canGoBack
-  ///
-  /// Purpose: Check if WebView can navigate back
-  ///
-  /// Parameters: None
-  ///
-  /// Returns: Future<bool>
-  Future<bool> _canGoBack() async {
-    return await _controller.canGoBack();
-  }
-
-  /// Function Name: _canGoForward
-  ///
-  /// Purpose: Check if WebView can navigate forward
-  ///
-  /// Parameters: None
-  ///
-  /// Returns: Future<bool>
-  Future<bool> _canGoForward() async {
-    return await _controller.canGoForward();
-  }
-
-  /// Function Name: _goBack
-  ///
-  /// Purpose: Navigate back in WebView history
-  ///
-  /// Parameters: None
-  ///
-  /// Returns: Future<void>
-  Future<void> _goBack() async {
-    if (await _canGoBack()) {
-      await _controller.goBack();
-    }
-  }
-
-  /// Function Name: _goForward
-  ///
-  /// Purpose: Navigate forward in WebView history
-  ///
-  /// Parameters: None
-  ///
-  /// Returns: Future<void>
-  Future<void> _goForward() async {
-    if (await _canGoForward()) {
-      await _controller.goForward();
-    }
-  }
-
-  /// Function Name: _reload
-  ///
-  /// Purpose: Reload the current page
-  ///
-  /// Parameters: None
-  ///
-  /// Returns: Future<void>
-  Future<void> _reload() async {
-    await _controller.reload();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,20 +133,6 @@ class _WebViewPageState extends State<WebViewPage> {
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         elevation: 2,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _reload,
-            tooltip: 'Reload',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            tooltip: 'Back to Settings',
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -222,77 +149,6 @@ class _WebViewPageState extends State<WebViewPage> {
           // WebView
           Expanded(child: WebViewWidget(controller: _controller)),
         ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Back button
-                FutureBuilder<bool>(
-                  future: _canGoBack(),
-                  builder: (context, snapshot) {
-                    final canGoBack = snapshot.data ?? false;
-                    return IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: canGoBack ? _goBack : null,
-                      tooltip: 'Back',
-                      color: canGoBack
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey,
-                    );
-                  },
-                ),
-
-                // Forward button
-                FutureBuilder<bool>(
-                  future: _canGoForward(),
-                  builder: (context, snapshot) {
-                    final canGoForward = snapshot.data ?? false;
-                    return IconButton(
-                      icon: const Icon(Icons.arrow_forward),
-                      onPressed: canGoForward ? _goForward : null,
-                      tooltip: 'Forward',
-                      color: canGoForward
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey,
-                    );
-                  },
-                ),
-
-                // Reload button
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _reload,
-                  tooltip: 'Reload',
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-
-                // Home button (back to settings)
-                IconButton(
-                  icon: const Icon(Icons.home),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  tooltip: 'Home',
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

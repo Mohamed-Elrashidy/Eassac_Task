@@ -42,10 +42,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Eassac Task',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: ThemeData(useMaterial3: true),
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthenticationPage(),
