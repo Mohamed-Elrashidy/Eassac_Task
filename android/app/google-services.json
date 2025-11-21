@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "908797335681",
+    "project_id": "fir-meal-99bca",
+    "storage_bucket": "fir-meal-99bca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908797335681:android:b33f19c6842e5a85605580",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlhAbiEI8JhJvfDhizO8cWkcoYf4P_qFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908797335681:android:56eae728d01bad61605580",
+        "android_client_info": {
+          "package_name": "com.example.demo_meal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlhAbiEI8JhJvfDhizO8cWkcoYf4P_qFE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
