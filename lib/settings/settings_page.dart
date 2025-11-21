@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -221,11 +220,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ? result.device.platformName
               : 'Unknown Device';
           final deviceId = result.device.remoteId.toString();
-          final rssi = result.rssi;
 
-          scanResults.add(
-            'Bluetooth: $deviceName ($deviceId) [Signal: $rssi dBm]',
-          );
+          scanResults.add('Bluetooth: $deviceName ($deviceId)');
         }
       });
 
@@ -308,52 +304,6 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         elevation: 2,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign Out',
-            onPressed: () async {
-              // Show confirmation dialog
-              final shouldSignOut = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Sign Out'),
-                  content: const Text('Are you sure you want to sign out?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Sign Out'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (shouldSignOut == true && context.mounted) {
-                try {
-                  await FirebaseAuth.instance.signOut();
-                  await GoogleSignIn().signOut();
-
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/');
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error signing out: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              }
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -485,24 +435,15 @@ class _SettingsPageState extends State<SettingsPage> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Scanning BT...',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                ),
                               ],
                             ),
                           ),
-                        IconButton(
-                          onPressed: _loadNetworkDevices,
-                          icon: const Icon(Icons.refresh),
-                          tooltip: 'Refresh devices',
-                        ),
+                        if (!_isBluetoothScanning)
+                          IconButton(
+                            onPressed: _loadNetworkDevices,
+                            icon: const Icon(Icons.refresh),
+                            tooltip: 'Refresh devices',
+                          ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -534,9 +475,12 @@ class _SettingsPageState extends State<SettingsPage> {
                           items: _networkDevices.map((device) {
                             return DropdownMenuItem(
                               value: device,
-                              child: Text(
-                                device,
-                                overflow: TextOverflow.ellipsis,
+                              child: Container(
+                                width: 200,
+                                child: Text(
+                                  device,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             );
                           }).toList(),
@@ -580,32 +524,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Info Card
-            Card(
-              elevation: 2,
-              color: Colors.amber[50],
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.amber[900]),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Configure the website URL to display in the WebView. Select network devices like WiFi, Bluetooth, or printers from the dropdown.',
-                        style: TextStyle(
-                          color: Colors.amber[900],
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
