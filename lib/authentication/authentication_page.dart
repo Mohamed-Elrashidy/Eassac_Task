@@ -60,9 +60,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
 
     try {
       // Trigger the Facebook authentication flow
-      final LoginResult result = await FacebookAuth.instance.login(
-        permissions: ['email', 'public_profile'],
-      );
+      final LoginResult result = await FacebookAuth.instance.login();
 
       if (result.status == LoginStatus.cancelled) {
         // User canceled the sign-in
@@ -321,18 +319,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                                             ),
                                       ),
                                     )
-                                  : Image.asset(
-                                      'assets/google_logo.png',
-                                      height: 24,
-                                      width: 24,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.login,
-                                              color: Colors.white,
-                                            );
-                                          },
-                                    ),
+                                  : Icon(Icons.login, color: Colors.white),
                               label: Text(
                                 _isLoading
                                     ? 'Signing in...'
@@ -374,18 +361,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                                             ),
                                       ),
                                     )
-                                  : Image.asset(
-                                      'assets/facebook_logo.png',
-                                      height: 24,
-                                      width: 24,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.facebook,
-                                              color: Colors.white,
-                                            );
-                                          },
-                                    ),
+                                  : Icon(Icons.login, color: Colors.white),
                               label: Text(
                                 _isLoading
                                     ? 'Signing in...'

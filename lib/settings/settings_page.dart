@@ -13,6 +13,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wifi_scan/wifi_scan.dart';
 
 /// ****************** CLASS: SettingsPage ******************
 class SettingsPage extends StatefulWidget {
@@ -77,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// Function Name: _loadNetworkDevices
   ///
-  /// Purpose: Load network devices (WiFi and Bluetooth) with proper permissions
+  /// Purpose: Scan for nearby WiFi networks and Bluetooth devices with proper permissions
   ///
   /// Parameters: None
   ///
@@ -99,23 +100,24 @@ class _SettingsPageState extends State<SettingsPage> {
             .request();
 
         if (locationStatus.isGranted) {
-          // Get WiFi information
+          // Get current WiFi connection information
           try {
             final wifiName = await _networkInfo.getWifiName();
             final wifiIP = await _networkInfo.getWifiIP();
-            final wifiBSSID = await _networkInfo.getWifiBSSID();
 
             if (wifiName != null) {
               devices.add(
-                'WiFi: $wifiName${wifiIP != null ? " ($wifiIP)" : ""}',
+                'WiFi (Connected): $wifiName${wifiIP != null ? " ($wifiIP)" : ""}',
               );
-            }
-            if (wifiBSSID != null) {
-              devices.add('WiFi BSSID: $wifiBSSID');
             }
           } catch (e) {
             debugPrint('Error getting WiFi info: $e');
           }
+
+          // Scan for nearby WiFi networks
+          await _scanNearbyWiFiNetworks(devices);
+        } else {
+          devices.add('WiFi: Location permission denied');
         }
 
         // Scan for Bluetooth devices
@@ -128,19 +130,24 @@ class _SettingsPageState extends State<SettingsPage> {
         var locationStatus = await Permission.location.request();
 
         if (locationStatus.isGranted) {
-          // Get WiFi information for iOS
+          // Get current WiFi connection information for iOS
           try {
             final wifiName = await _networkInfo.getWifiName();
             final wifiIP = await _networkInfo.getWifiIP();
 
             if (wifiName != null) {
               devices.add(
-                'WiFi: $wifiName${wifiIP != null ? " ($wifiIP)" : ""}',
+                'WiFi (Connected): $wifiName${wifiIP != null ? " ($wifiIP)" : ""}',
               );
             }
           } catch (e) {
             debugPrint('Error getting WiFi info: $e');
           }
+
+          // Scan for nearby WiFi networks on iOS
+          await _scanNearbyWiFiNetworks(devices);
+        } else {
+          devices.add('WiFi: Location permission denied');
         }
 
         var bluetoothStatus = await Permission.bluetooth.request();
@@ -159,6 +166,84 @@ class _SettingsPageState extends State<SettingsPage> {
       _networkDevices = devices.isEmpty ? ['No devices found'] : devices;
       _isLoadingDevices = false;
     });
+  }
+
+  /// Function Name: _scanNearbyWiFiNetworks
+  ///
+  /// Purpose: Scan for nearby WiFi networks and add them to the devices list
+  ///
+  /// Parameters:
+  /// - devices: List to add found WiFi networks
+  ///
+  /// Returns: Future void
+  Future<void> _scanNearbyWiFiNetworks(List<String> devices) async {
+    try {
+      // Check if WiFi scan is supported
+      final can = await WiFiScan.instance.canGetScannedResults();
+
+      switch (can) {
+        case CanGetScannedResults.yes:
+          // Start WiFi scan
+          await WiFiScan.instance.startScan();
+
+          // Wait a bit for scan to complete
+          await Future.delayed(const Duration(seconds: 2));
+
+          // Get scan results
+          final results = await WiFiScan.instance.getScannedResults();
+
+          if (results.isNotEmpty) {
+            // Sort by signal strength (strongest first)
+            results.sort((a, b) => b.level.compareTo(a.level));
+
+            for (var network in results) {
+              final ssid = network.ssid.isNotEmpty
+                  ? network.ssid
+                  : 'Hidden Network';
+              final capabilities = network.capabilities;
+              final level = network.level;
+              final frequency = network.frequency;
+
+              // Determine security type
+              String security = 'Open';
+              if (capabilities.contains('WPA3')) {
+                security = 'WPA3';
+              } else if (capabilities.contains('WPA2')) {
+                security = 'WPA2';
+              } else if (capabilities.contains('WPA')) {
+                security = 'WPA';
+              } else if (capabilities.contains('WEP')) {
+                security = 'WEP';
+              }
+
+              // Add WiFi network to devices list
+              devices.add(
+                'WiFi: $ssid (Signal: $level dBm, Security: $security, ${frequency}MHz)',
+              );
+            }
+          } else {
+            devices.add('WiFi: No nearby networks found');
+          }
+          break;
+
+        case CanGetScannedResults.notSupported:
+          devices.add('WiFi: Scanning not supported on this device');
+          break;
+
+        case CanGetScannedResults.noLocationPermissionRequired:
+        case CanGetScannedResults.noLocationPermissionDenied:
+        case CanGetScannedResults.noLocationPermissionUpgradeAccuracy:
+          devices.add('WiFi: Location permission required for scanning');
+          break;
+
+        case CanGetScannedResults.noLocationServiceDisabled:
+          devices.add('WiFi: Please enable location services');
+          break;
+      }
+    } catch (e) {
+      debugPrint('Error scanning WiFi networks: $e');
+      devices.add('WiFi: Error scanning - ${e.toString()}');
+    }
   }
 
   /// Function Name: _scanBluetoothDevices
@@ -200,16 +285,18 @@ class _SettingsPageState extends State<SettingsPage> {
       // Get already connected devices
       final connectedDevices = await FlutterBluePlus.systemDevices([]);
       for (var device in connectedDevices) {
-        devices.add(
-          'Bluetooth (Connected): ${device.platformName.isNotEmpty ? device.platformName : device.remoteId.toString()}',
-        );
+        final deviceName = device.platformName.isNotEmpty
+            ? device.platformName
+            : 'Unknown Device';
+        devices.add('Bluetooth (Connected): $deviceName');
       }
 
       // Start scanning for devices
-      final scanResults = <String>{};
+      final scanResults =
+          <String, String>{}; // Map to avoid duplicates: ID -> Name
 
       await FlutterBluePlus.startScan(
-        timeout: const Duration(seconds: 4),
+        timeout: const Duration(seconds: 5),
         androidUsesFineLocation: true,
       );
 
@@ -220,21 +307,23 @@ class _SettingsPageState extends State<SettingsPage> {
               ? result.device.platformName
               : 'Unknown Device';
           final deviceId = result.device.remoteId.toString();
+          final rssi = result.rssi;
 
-          scanResults.add('Bluetooth: $deviceName ($deviceId)');
+          // Store device with signal strength
+          scanResults[deviceId] = 'Bluetooth: $deviceName (Signal: $rssi dBm)';
         }
       });
 
       // Wait for scan to complete
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(const Duration(seconds: 5));
 
       // Stop scanning
       await FlutterBluePlus.stopScan();
 
       // Add scanned devices
       if (scanResults.isNotEmpty) {
-        devices.addAll(scanResults);
-      } else {
+        devices.addAll(scanResults.values);
+      } else if (connectedDevices.isEmpty) {
         devices.add('Bluetooth: No devices found nearby');
       }
 
@@ -475,7 +564,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           items: _networkDevices.map((device) {
                             return DropdownMenuItem(
                               value: device,
-                              child: Container(
+                              child: SizedBox(
                                 width: 200,
                                 child: Text(
                                   device,

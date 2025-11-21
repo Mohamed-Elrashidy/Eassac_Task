@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.2.2
   permission_handler: ^11.1.0
   network_info_plus: ^5.0.1
+  wifi_scan: ^0.4.1
   flutter_blue_plus: ^1.32.12
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
