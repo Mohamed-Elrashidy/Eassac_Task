@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Eassac Task</string>
+
+    <!-- Facebook Configuration -->
+    <!-- Replace YOUR_FACEBOOK_APP_ID with your actual Facebook App ID -->
+    <string name="facebook_app_id">768719972847907</string>
+
+    <!-- Replace YOUR_FACEBOOK_CLIENT_TOKEN with your actual Facebook Client Token -->
+    <string name="facebook_client_token">7ec78737a3ae1ccec21d557ca7a2c191</string>
+
+    <!-- This is your Facebook App ID prefixed with 'fb' -->
+    <string name="fb_login_protocol_scheme">fb768719972847907</string>
+</resources>
+
