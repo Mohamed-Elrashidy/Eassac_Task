@@ -1,11 +1,11 @@
 /// ****************** FILE INFO ******************
 /// File Name: authentication_page.dart
-/// Purpose: Handle user authentication with Google Sign-In
+/// Purpose: Handle user authentication with Google and Facebook Sign-In
 /// Author: Mohamed Elrashidy
 /// Created At: 21/11/2025
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 /// ****************** CLASS: AuthenticationPage ******************
@@ -42,6 +42,84 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/settings');
       });
+    }
+  }
+
+  /// Function Name: _signInWithFacebook
+  ///
+  /// Purpose: Handle Facebook Sign-In authentication
+  ///
+  /// Parameters: None
+  ///
+  /// Returns: Future void
+  Future<void> _signInWithFacebook() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Trigger the Facebook authentication flow
+      final LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'],
+      );
+
+      if (result.status == LoginStatus.cancelled) {
+        // User canceled the sign-in
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (result.status == LoginStatus.success) {
+        // Get the access token
+        final AccessToken accessToken = result.accessToken!;
+
+        // Create Firebase credential
+        final OAuthCredential credential = FacebookAuthProvider.credential(
+          accessToken.tokenString,
+        );
+
+        // Sign in to Firebase with the Facebook credential
+        final UserCredential userCredential = await _auth.signInWithCredential(
+          credential,
+        );
+
+        if (mounted) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Welcome, ${userCredential.user?.displayName ?? "User"}!',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+
+          // Navigate to settings page
+          Navigator.pushReplacementNamed(context, '/settings');
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage =
+              result.message ?? 'Facebook login failed. Please try again.';
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = _getFirebaseErrorMessage(e.code);
+      });
+    } catch (e) {
+      print("error is $e");
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+      });
+      debugPrint('Sign in error: $e');
     }
   }
 
@@ -266,6 +344,59 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4285F4),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Facebook Sign-In Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: _isLoading
+                                  ? null
+                                  : _signInWithFacebook,
+                              icon: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      'assets/facebook_logo.png',
+                                      height: 24,
+                                      width: 24,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.facebook,
+                                              color: Colors.white,
+                                            );
+                                          },
+                                    ),
+                              label: Text(
+                                _isLoading
+                                    ? 'Signing in...'
+                                    : 'Sign in with Facebook',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1877F2),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),

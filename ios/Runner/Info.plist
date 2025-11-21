@@ -68,5 +68,33 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- 1. Register the URL Scheme so the Facebook App can call your app back -->
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <!-- Replace with "fb" followed by your App ID -->
+        <string>fb768719972847907</string>
+      </array>
+      </dict>
+    </array>
+
+    <!-- 2. Facebook App ID, Client Token, and Display Name -->
+    <key>FacebookAppID</key>
+    <string>768719972847907</string>
+    <key>FacebookClientToken</key>
+    <string>7ec78737a3ae1ccec21d557ca7a2c191</string>
+    <key>FacebookDisplayName</key>
+    <string>app</string>
+
+    <!-- 3. Allowlist Facebook Apps (REQUIRED for iOS 9+) -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>fbapi</string>
+      <string>fb-messenger-share-api</string>
+      <string>fbauth2</string>
+      <string>fbshareextension</string>
+    </array>
 </dict>
 </plist>

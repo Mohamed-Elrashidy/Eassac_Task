@@ -19,6 +19,15 @@
         android:label="app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- Add these 2 meta-data tags -->
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
+
+        <!-- Add this Activity -->
+        <activity android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
